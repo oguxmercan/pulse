@@ -1,0 +1,16 @@
+# build output
+bin/
+obj/
+dist/
+dist_new/
+*.msi
+*.wixpdb
+
+# ide
+.vs/
+*.user
+*.suo
+
+# local runtime junk
+selftest.log
+watch.log

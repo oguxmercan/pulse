@@ -1,0 +1,43 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+    <Package Name="Pulse"
+             Manufacturer="Pulse"
+             Version="1.0.0"
+             UpgradeCode="D3E1F2B4-8A11-4E77-9C3D-51A0F6B29C10"
+             Scope="perMachine"
+             Compressed="yes">
+
+        <MajorUpgrade DowngradeErrorMessage="Pulse'in daha yeni bir sürümü zaten kurulu." />
+        <MediaTemplate EmbedCab="yes" />
+
+        <Icon Id="PulseIcon" SourceFile="$(PayloadDir)\Pulse.exe" />
+        <Property Id="ARPPRODUCTICON" Value="PulseIcon" />
+        <Property Id="ARPNOMODIFY" Value="1" />
+
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="INSTALLFOLDER" Name="Pulse" />
+        </StandardDirectory>
+
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="PulseMenuFolder" Name="Pulse">
+                <Component Id="MenuShortcut" Guid="*">
+                    <Shortcut Id="AppShortcut" Name="Pulse"
+                              Target="[INSTALLFOLDER]Pulse.exe"
+                              WorkingDirectory="INSTALLFOLDER"
+                              Icon="PulseIcon"
+                              Description="Oyun performans overlay'i ve kontrol paneli" />
+                    <RemoveFolder Id="RemovePulseMenuFolder" On="uninstall" />
+                    <RegistryValue Root="HKCU" Key="Software\Pulse" Name="StartMenu" Type="integer" Value="1" KeyPath="yes" />
+                </Component>
+            </Directory>
+        </StandardDirectory>
+
+        <ComponentGroup Id="Payload" Directory="INSTALLFOLDER">
+            <Files Include="$(PayloadDir)\**" />
+        </ComponentGroup>
+
+        <Feature Id="Main" Title="Pulse" Level="1">
+            <ComponentGroupRef Id="Payload" />
+            <ComponentRef Id="MenuShortcut" />
+        </Feature>
+    </Package>
+</Wix>

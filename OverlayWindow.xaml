@@ -1,0 +1,21 @@
+<Window x:Class="Pulse.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Pulse Overlay"
+        Width="330" Height="130"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" Topmost="True" WindowStartupLocation="Manual"
+        ResizeMode="CanResizeWithGrip"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        TextOptions.TextFormattingMode="Ideal">
+    <Grid x:Name="Root" Background="Transparent" MouseLeftButtonDown="OnDrag">
+        <ContentControl x:Name="Host"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch" />
+        <Border x:Name="EditFrame" Visibility="Collapsed" IsHitTestVisible="False"
+                BorderBrush="#FF7C6BFF" BorderThickness="1" CornerRadius="10">
+            <TextBlock Text="TAŞI · boyut için köşeden çek"
+                       FontSize="10" Foreground="#CC7C6BFF" Margin="8,4" />
+        </Border>
+    </Grid>
+</Window>
