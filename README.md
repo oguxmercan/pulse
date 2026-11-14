@@ -1,185 +1,186 @@
-# Pulse — Windows oyun performans overlay'i + kontrol paneli
+# Pulse — in-game performance overlay + control panel for Windows
 
-Tek uygulama, iki parça: şık bir **oyun içi overlay** ve bir **kontrol paneli** (FPS/frametime, CPU, GPU, RAM, sıcaklıklar, fan).
-Windows 10/11 x64. .NET 10 WPF + WPF-UI (Fluent), LibreHardwareMonitor (sensörler),
-Intel PresentMon (kare/FPS), nvidia-smi (güç/saat limitleri).
+One app, two halves: a clean **in-game overlay** and a **control panel** for FPS, frametime, CPU, GPU,
+RAM, temperatures and fans. Windows 10/11 x64, .NET 10 WPF + WPF-UI (Fluent),
+LibreHardwareMonitor (sensors), Intel PresentMon (frames/FPS), nvidia-smi (power/clock limits).
 
-## Ekran görüntüleri
+## Screenshots
 
-Kontrol paneli:
+Control panel:
 
 ![Pulse panel](docs/panel.png)
 
-Sekiz hazır overlay görünümü:
+The eight built-in overlay looks:
 
-![Overlay temaları](docs/themes.png)
+![Overlay themes](docs/themes.png)
 
-## Kurulum
+## Install
 
-**Installer (önerilen):** `PulseSetup.msi` → çift tık. `C:\Program Files\Pulse` altına kurar,
-Başlangıç menüsüne kısayol ekler, Denetim Masası'ndan kaldırılabilir. Kurulum her makine içindir (admin).
+**Installer (recommended):** `PulseSetup.msi` → double click. Installs to `C:\Program Files\Pulse`,
+adds a Start menu shortcut and uninstalls from Settings → Apps. Per-machine install (admin).
 
-Yeni MSI üretmek: `powershell -File installeruild.ps1`
-(WiX 5 gerekir: `dotnet tool install --global wix --version 5.0.2`. WiX 7 lisans ücreti istediği için 5 kullanılıyor.)
+Rebuild the MSI: `powershell -File installer\build.ps1`
+(requires WiX 5: `dotnet tool install --global wix --version 5.0.2` — WiX 7 is licensed, 5 is not.)
 
-**Taşınabilir:** 
+**Portable:**
+
 ```
 dist\Pulse.exe
 ```
 
-`dist\` klasörü taşınabilir; `Pulse.exe` + `PresentMon.exe` yan yana durmalı.
-Uygulama **yönetici olarak** açılır (UAC): CPU sıcaklığı, anakart fanları ve ETW kare yakalama
-ancak yükseltilmiş yetkiyle çalışır.
+The `dist\` folder is portable; `Pulse.exe` and `PresentMon.exe` must stay side by side.
+The app **requests admin** (UAC): CPU temperature, motherboard fans and ETW frame capture only
+work elevated.
 
-Geliştirme: `dotnet build` → `dotnet publish -c Release -o dist`
+Development: `dotnet build` → `dotnet publish -c Release -o dist`
 
-## Arayüz (Xbox PC uygulaması düzeni)
+## UI (Xbox PC app layout)
 
-Logo `Assets/logo.png` (yeniden üretmek için `python Assets/make_logo.py`), pencere simgesi `Assets/pulse.ico`.
-**Hakkında** sayfası: geliştirici kartı (Oğuzhan Mercan · Mercan Search and Development · Netherlands),
-GitHub / X bağlantıları ve teknoloji lisans notları.
+Logo `Assets/logo.png` (regenerate with `python Assets/make_logo.py`), window icon `Assets/pulse.ico`.
+The **About** page holds a developer card (Oğuzhan Mercan · Mercan Search and Development · Netherlands),
+GitHub / X links and the tech/licence notes. The app UI itself is Turkish.
 
-- **Sol kenar çubuğu** (244 px): logo, Giriş · Kütüphane · Overlay · Hız aşırtma; altta canlı SİSTEM kutusu
-  (CPU/GPU sıcaklığı, FPS) ve overlay aç/kapa.
-- **Üst bar**: ortada yuvarlak arama kutusu, sağda durum satırı.
-- **Giriş**: "SON OYNANAN" hero banner'ı (Steam `library_hero.jpg`), oyun adı + istatistik + **Oyna**;
-  altında 4 metrik kartı ve kare geçmişi.
-- **Kütüphane**: 16:9 geniş kapak döşemeleri (4 sütun), altında oyun adı + mağaza/süre/FPS satırı;
-  sıralama (A→Z, oynama süresi, son oynanan, mağaza), arama, alt çubukta **Başlat / Hedef FPS / Kaldır**.
+- **Sidebar** (244 px): logo, Home · Library · Overlay · Overclocking, plus a live SYSTEM box
+  (CPU/GPU temperature, FPS, GPU/CPU model) and an overlay on/off button.
+- **Top bar**: rounded search box in the middle, status line on the right.
+- **Home**: "LAST PLAYED" hero banner (Steam `library_hero.jpg`), game name + stats + **Play**;
+  four metric cards and a frame-history graph below.
+- **Library**: 16:9 wide cover tiles (4 columns) with name + store/playtime/FPS line;
+  sorting (A→Z, playtime, last played, store), search, and **Launch / Target FPS / Remove** at the bottom.
 
 ## Overlay
 
-- Sürükle: **Ctrl+Alt+L** (tıkla-geç kapanır) → sol üstten tut, köşeden boyutlandır.
-- Göster/gizle: **Ctrl+Alt+O**.
-- Kilitliyken (`WS_EX_TRANSPARENT`) fare oyuna geçer; overlay hiçbir tıklamayı yemez.
-- Konum, boyut, tema, saydamlık `%LOCALAPPDATA%\Pulse\settings.json` içinde saklanır.
-- Sekiz hazır görünüm: `minimal`, `cards`, `graph`, `bars`, `neon` (parlayan FPS + sparkline), `halo` (tek satır premium pill), `ticker` (monospace şerit), `dual` (FPS + dolu çubuklar).
+- Move: **Ctrl+Alt+L** (click-through is disabled while moving) → drag from the top-left, resize from the corner.
+- Show/hide: **Ctrl+Alt+O**.
+- While locked (`WS_EX_TRANSPARENT`) the mouse goes straight to the game; the overlay never eats a click.
+- Position, size, theme and opacity are stored in `%LOCALAPPDATA%\Pulse\settings.json`.
+- Eight built-in looks: `minimal`, `cards`, `graph`, `bars`, `neon` (glowing FPS + sparkline),
+  `halo` (single-line premium pill), `ticker` (monospace stripe), `dual` (big FPS + filled bars).
+  Each one prints the GPU and CPU model names, shortened (`NVIDIA GeForce RTX 3080` → `RTX 3080`).
 
-### Overlay editörü (kodlanabilir tema)
+### Overlay editor (themes are code)
 
-Overlay'in görünümü sadece bir **XAML `DataTemplate`** dosyasıdır: `%LOCALAPPDATA%\Pulse\themes\*.xaml`.
-Panel → **Overlay** sekmesinde kodu düzenle, **Uygula (canlı)** ile anında gör, **Kaydet** ile sakla,
-**Varsayılana döndür** ile shipped sürüme dön.
+An overlay look is just an **XAML `DataTemplate`** file: `%LOCALAPPDATA%\Pulse\themes\*.xaml`.
+Panel → **Overlay** tab: edit the markup, **Apply (live)** to see it instantly, **Save** to keep it,
+**Reset to default** to return to the shipped version.
 
-Bağlanabilir değerler (`{Binding ...}`):
+Bindable values (`{Binding ...}`):
 
-| Grup | Alanlar |
-|------|---------|
-| FPS | `Fps`, `Frametime`, `Spark` (64x40 grafik geometrisi, `<Path Data="{Binding Spark}" Stretch="Fill"/>`) |
-| CPU | `CpuName`, `CpuLoad`, `CpuTemp`, `CpuFan`, `CpuClock` |
-| GPU | `GpuName`, `GpuLoad`, `GpuTemp`, `GpuHotspot`, `GpuFan`, `GpuFanPct`, `GpuClock`, `GpuPower`, `VramUsed`, `VramTotal` |
+| Group | Fields |
+|-------|--------|
+| FPS | `Fps`, `Frametime`, `Spark` (64x40 geometry — `<Path Data="{Binding Spark}" Stretch="Fill"/>`) |
+| CPU | `CpuName`, `CpuShort`, `CpuLoad`, `CpuTemp`, `CpuFan`, `CpuClock` |
+| GPU | `GpuName`, `GpuShort`, `GpuLoad`, `GpuTemp`, `GpuHotspot`, `GpuFan`, `GpuFanPct`, `GpuClock`, `GpuPower`, `VramUsed`, `VramTotal` |
 | RAM | `RamUsed`, `RamTotal` |
-| Diğer | `Target` (izlenen süreç), `Clock` |
+| Other | `Target` (tracked process), `Clock` |
 
-Örnek satır:
+Example line:
 
 ```xml
 <TextBlock Text="{Binding CpuTemp, StringFormat='{}{0:F0}°C', TargetNullValue='--'}" />
 ```
 
-Sensör yoksa değer `null` gelir → `TargetNullValue` ile `--` göster.
+Missing sensors arrive as `null` → show `--` with `TargetNullValue`.
 
-## Kütüphane
+## Library
 
-Steam (kütüphane klasörleri dahil), Epic, GOG, EA App, Ubisoft Connect, Battle.net otomatik taranır;
-**EXE ekle** ile kendi oyununu ekleyebilirsin (liste `settings.json` → `Custom`).
+Steam (including extra library folders), Epic, GOG, EA App, Ubisoft Connect and Battle.net are scanned
+automatically; **Add EXE** takes your own game (stored in `settings.json` → `Custom`).
 
-- Başlatma: Steam/Epic launcher URI'si, diğerleri doğrudan exe.
-- Oturum takibi: oyunun süreci açıkken süre sayılır, kapanınca kaydedilir (`%LOCALAPPDATA%\Pulse\sessions.json`).
-  20 saniyeden kısa oturumlar kaydedilmez.
-- Oyun başına: toplam süre, oturum sayısı, ortalama FPS, ortalama/en yüksek GPU-CPU sıcaklığı.
-- Ortalama FPS hesabı ilk %10'luk yükleme dilimini atar.
-- **Hedef FPS**: oyun başına saklanır (`settings.json` → `Targets`). Oturum ortalaması hedefin
-  %97'sinin altındaysa listede "hedef altı" görünür — bir kare hızı *sınırı* değil, ölçüm referansıdır.
+- Launching: Steam/Epic launcher URIs, everything else directly by exe.
+- Session tracking: the clock runs while the game's process is alive and the session is saved on exit
+  (`%LOCALAPPDATA%\Pulse\sessions.json`). Sessions shorter than 20 s are dropped.
+- Per game: total playtime, session count, average FPS, average/peak GPU and CPU temperature.
+- Average FPS skips the first 10% of samples (load-time spikes).
+- **Target FPS** is stored per game (`settings.json` → `Targets`). If the session average is below
+  97% of it the card shows "below target" — it is a measurement reference, not a frame cap.
 
-### Kare sınırlayıcı (RTSS entegrasyonu)
+### Frame limiter (RTSS integration)
 
-Sınırlama, **RivaTuner Statistics Server** üzerinden yapılır — RTSS "Front-Edge Sync" ile hassas
-frame pacing sağlar (framepacer'ın kendisi de karşılaştırma tablosunda RTSS'i eşdeğer gösteriyor).
-Pulse **enjeksiyon yapmaz**; sadece RTSS profillerini yönetir:
+Limiting goes through **RivaTuner Statistics Server**, whose "Front-Edge Sync" gives precise frame
+pacing. Pulse **does not inject anything** — it only manages RTSS profiles:
 
-- Kütüphanede oyun seç → **FPS sınırı** kutusuna değer yaz → **Sınırı uygula**
-  (`Profiles\<exe>.cfg` içine `[Framerate] Limit=N`, `LimitDenominator=1`).
-- Hız aşırtma sayfasında **Global sınır** (tüm oyunlar) ve kapatma.
-- RTSS çalışmıyorsa Pulse başlatır; kurulu değilse bölüm pasif kalır ve durumu yazar.
-- RTSS'in `Profiles` klasörü `Program Files` altında olduğu için yazma **yönetici** ister (uygulama zaten yönetici).
+- Select a game in the library → type a value into **FPS limit** → **Apply limit**
+  (writes `[Framerate] Limit=N`, `LimitDenominator=1` into `Profiles\<exe>.cfg`).
+- The overclocking page has a **global limit** (all games) and a switch to remove it.
+- Pulse starts RTSS if it is not running; if RTSS is not installed the section stays inactive and says so.
+- RTSS lives under `Program Files`, so writing profiles needs admin (the app is already elevated).
 
-Sınırı 0 yapmak o oyunun sınırını kaldırır (`Limit=0`). Değişiklik oyun yeniden başlatılmadan
-yeni karelerde etkili olur; RTSS yalnızca kendi hook'ladığı süreçlerde çalışır (WPF/DWM pencereleri kapsam dışı).
+A limit of 0 removes that game's cap (`Limit=0`). Changes apply to new frames without restarting the
+game; RTSS only touches the processes it hooks (WPF/DWM windows are out of scope).
 
-**Doğrulandı (2026-11-14):** Forager (Steam) Pulse'tan 60 fps sınırıyla başlatıldı;
-`Profiles\Forager.exe.cfg` = `[Framerate] Limit=60 / LimitDenominator=1` (Pulse yazdı),
-RTSS OSD oyunda sabit 60 fps gösterdi. Yani sınır + pacing RTSS tarafından uygulanıyor.
-Not: sentetik D3D11 test sürecimde RTSS hook devreye girmedi (gerçek oyunlarda giriyor) — bu yüzden
-doğrulama oyunla yapıldı.
+**Verified (2026-11-14):** Forager (Steam) was launched from Pulse with a 60 fps limit;
+`Profiles\Forager.exe.cfg` = `[Framerate] Limit=60 / LimitDenominator=1` (written by Pulse) and the
+RTSS OSD showed a steady 60 fps in game. So the cap and the pacing are enforced by RTSS.
+Note: RTSS did not hook a synthetic D3D11 test process of mine (real games are hooked).
 
-> Uyarı: RTSS enjeksiyonu, framepacer gibi, agresif kernel anti-cheat'li (Vanguard, EAC, BattlEye)
-> rekabetçi oyunlarda risklidir. Kullanmadan önce oyunun politikasını kontrol et.
+> Warning: RTSS injection is risky in competitive games with aggressive kernel anti-cheat
+> (Vanguard, EAC, BattlEye). Check the game's policy before using it.
 
-### framepacer.com'daki hangi özellikler yok
+### What framepacer.com has that this does not
 
-- DLSS/FSR/XeSS **Frame Generation** ve Reflex **FG-aware** limiter (bizim sınırımız düz FPS).
-- Anti-cheat tespiti/blacklist ve otomatik oyun tanıma sezgileri.
-- Kendi enjeksiyon motoru, ReShade entegrasyonu, 30 dil, mağaza (Steam) sürümü.
+- DLSS/FSR/XeSS **Frame Generation** and a Reflex **FG-aware** limiter (ours is a plain FPS cap).
+- Anti-cheat detection/blacklist and automatic game-detection heuristics.
+- Its own injection engine, ReShade integration, 30 languages, store (Steam) release.
 
-### Kapak görselleri
+### Cover art
 
-Kapaklar Steam CDN'inden indirilip `%LOCALAPPDATA%\Pulse\covers\` altında saklanır:
+Covers are downloaded from the Steam CDN and cached in `%LOCALAPPDATA%\Pulse\covers\`:
 
-- Steam oyunları: `steam:<appid>` → `steam/apps/<appid>/library_600x900.jpg` (yoksa `header.jpg`).
-- Diğer mağazalar: isim, Steam mağaza aramasıyla appid'e eşlenir (`covers.json` içinde saklanır).
-- JPEG doğrulaması yapılır (boş/HTML yanıtı yazılmaz), kapak yoksa döşemede harf monogramı görünür.
-- Yeniden indirmek için `covers` klasörünü sil ve **Yenile**'ye bas.
+- Steam games: `steam:<appid>` → `steam/apps/<appid>/library_600x900.jpg` (or `header.jpg`).
+- Other stores: the name is matched to an appid through Steam store search (cached in `covers.json`).
+- Responses are validated as JPEG (empty/HTML bodies are never written); without a cover the tile
+  shows a letter monogram.
+- To re-download, delete the `covers` folder and press **Refresh**.
 
-## Hız aşırtma / undervolt (NVIDIA, isteğe bağlı)
+## Overclocking / undervolting (NVIDIA, optional)
 
-Panel → **Hız aşırtma**:
+Panel → **Overclocking**:
 
-- **Undervolt profilleri** (tek tık): `Dengeli −10%`, `Sessiz −20% + 1800 MHz`, `Maks verim −30% + 1600 MHz`.
-  Güç limiti (`-pl`) + çekirdek saat tavanı (`-lgc 0,<MHz>`) birlikte uygulanır; NVAPI olmadan
-  yapılabilen güvenli undervolt budur (gerçek voltaj/frekans eğrisi NVAPI Pstates20 ister — bilinçli olarak yok).
-- **Güç limiti** (`nvidia-smi -pl`), **çekirdek saat kilidi** (`-lgc min,max`), **bellek kilidi** (`-lmc`).
-- Boş bırakılan alan uygulanmaz; `0` = kilidi kaldır.
-- **Güvenlik:** uygulama kapanırken, çökerse veya `AppDomain.ProcessExit` tetiklenirse `-rgc`, `-rmc`
-  ve varsayılan güç limiti geri yüklenir. Uygulama öldürülürse bir sonraki açılışta
-  `%LOCALAPPDATA%\Pulse\tuning-active` işareti görülüp temizlenir.
-- Gerçek çekirdek voltaj/frekans **ofseti** NVAPI gerektirir (Afterburner gibi); burada bilinçli olarak yok.
+- **Undervolt presets** (one click): `Balanced −10%`, `Quiet −20% + 1800 MHz`, `Max efficiency −30% + 1600 MHz`.
+  They combine a power limit (`-pl`) with a core clock ceiling (`-lgc 0,<MHz>`) — the safe kind of
+  undervolt you can do without NVAPI (a real voltage/frequency curve needs NVAPI `Pstates20` and is
+  deliberately left out).
+- **Power limit** (`nvidia-smi -pl`), **core clock lock** (`-lgc min,max`), **memory clock lock** (`-lmc`).
+- Empty fields are not applied; `0` removes a lock.
+- **Safety:** on close, on crash and on `AppDomain.ProcessExit` the app restores `-rgc`, `-rmc` and the
+  default power limit. If the process is killed, the next start sees the
+  `%LOCALAPPDATA%\Pulse\tuning-active` marker and resets the clocks.
+- A real core voltage/clock **offset** needs NVAPI (like Afterburner); intentionally not implemented.
 
-## Fan kontrolü
+## Fan control
 
-Sürücüsü yazılabilir fanlar (GPU fanları + ITE SuperIO anakart fanları) kaydırıcıyla %0-100 ayarlanır.
-Kapatınca veya **Fanları varsayılana döndür** ile firmware kontrolüne bırakılır (`IControl.SetDefault`).
-Hangi fanın hangisi olduğunu (%100 verip dinleyerek) doğrulamadan anakart fanlarına dokunma.
+Fans with a writable driver (GPU fans + ITE SuperIO motherboard fans) are set with a 0-100% slider.
+On exit, or via **Restore fans to default**, control goes back to the firmware (`IControl.SetDefault`).
+Do not touch motherboard fan headers before confirming which fan is which (set 100% and listen).
 
-## Bilinen sınırlar
+## Known limits
 
-- **FPS yalnızca yönetici + PresentMon ile.** PresentMon 2.x CSV'yi sadece çıkışta paylaşıma açtığı için
-  1.2 s'lik dilimler hâlinde çalıştırılır: FPS ~1.5 s'de bir güncellenir. (Uzun vadeli çözüm: Paylaşımlı
-  bellek API'si / kendi ETW tüketicimiz.)
-- **Özel tam ekran (exclusive fullscreen)** oyunlarda hiçbir harici overlay görünmez; **borderless/windowed**
-  kullan (Windows'un kendi kısıtı).
-- GPU hız aşırtma yalnızca NVIDIA. AMD/Intel kartlarda sensörler çalışır, tuning bölümü pasif kalır.
-- İlk açılışta sensör taraması 1-3 s sürebilir; CPU sıcaklığı yönetici değilse `--` görünür.
-- Elle eklenen/mağaza dışı oyunlarda oturum tespiti exe adına bağlıdır (kurulum klasöründe bulunan en büyük exe).
+- **FPS needs admin + PresentMon.** PresentMon 2.x only shares its CSV on exit, so it runs in ~1.2 s
+  slices: FPS refreshes about every 1.5 s. (Long-term fix: the shared-memory API or a native ETW consumer.)
+- **Exclusive fullscreen** games never show an external overlay; use borderless/windowed (a Windows limit).
+- GPU tuning is NVIDIA-only. On AMD/Intel the sensors work, the tuning section stays inactive.
+- The first launch can spend 1-3 s scanning sensors; CPU temperature shows `--` when not elevated.
+- For manually added / non-store games, session detection keys on the exe name (largest exe in the install folder).
 
-## Dosyalar
+## Files
 
 ```
 %LOCALAPPDATA%\Pulse\
-  settings.json      tema, overlay konumu, tuning değerleri, elle eklenen oyunlar
-  sessions.json      oyun oturumları ve istatistikler
-  themes\*.xaml      düzenlenebilir overlay temaları
-  tuning-active      varsa: son kapanış düzgün olmadı, açılışta saatler sıfırlanır
-  selftest.log       `Pulse.exe --selftest [exeAdı]` çıktısı (tanı için)
+  settings.json      theme, overlay position, tuning values, manually added games
+  sessions.json      game sessions and stats
+  themes\*.xaml      editable overlay themes
+  tuning-active      present => last exit was not clean, clocks are reset on start
+  selftest.log       output of `Pulse.exe --selftest [exeName]` (diagnostics)
 ```
 
-## Kaynaklar
+## Source map
 
-- `Core/Sensors.cs` — LibreHardwareMonitor sarmalayıcı, sensör seçimi, fan kontrolleri
-- `Core/FpsTracker.cs` — PresentMon dilimleme + FPS/frametime
-- `Core/GpuTuner.cs` — nvidia-smi, güvenli geri alma
-- `Core/Games.cs` — mağaza tarayıcıları, exe bulma, başlatma
-- `Core/Sessions.cs` — oturum/istatistik
-- `MainWindow.*` / `OverlayWindow.*` — panel ve overlay
-- `themes/*.xaml` — hazır temalar
+- `Core/Sensors.cs` — LibreHardwareMonitor wrapper, sensor selection, fan controls
+- `Core/FpsTracker.cs` — PresentMon slicing + FPS/frametime
+- `Core/GpuTuner.cs` — nvidia-smi, safe rollback
+- `Core/Games.cs` — store scanners, exe discovery, launching
+- `Core/Sessions.cs` — sessions/stats
+- `MainWindow.*` / `OverlayWindow.*` — panel and overlay
+- `themes/*.xaml` — shipped themes
 - `tools/PresentMon.exe` — Intel PresentMon 2.6.0 (MIT)
