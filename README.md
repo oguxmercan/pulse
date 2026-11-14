@@ -34,23 +34,6 @@ work elevated.
 
 Development: `dotnet build` → `dotnet publish -c Release -o dist`
 
-## UI (Xbox PC app layout)
-
-Logo `Assets/logo.png` (regenerate with `python Assets/make_logo.py`), window icon `Assets/pulse.ico`.
-The **About** page holds a developer card (Oğuzhan Mercan · Mercan Search and Development · Netherlands),
-GitHub / X links and the tech/licence notes.
-
-**Interface language:** Turkish (default) or English — About → *Language*, the app restarts once.
-Turkish is the source language; `Core/Loc.cs` holds the English table and translates the loaded UI.
-
-- **Sidebar** (244 px): logo, Home · Library · Overlay · Overclocking, plus a live SYSTEM box
-  (CPU/GPU temperature, FPS, GPU/CPU model) and an overlay on/off button.
-- **Top bar**: rounded search box in the middle, status line on the right.
-- **Home**: "LAST PLAYED" hero banner (Steam `library_hero.jpg`), game name + stats + **Play**;
-  four metric cards and a frame-history graph below.
-- **Library**: 16:9 wide cover tiles (4 columns) with name + store/playtime/FPS line;
-  sorting (A→Z, playtime, last played, store), search, and **Launch / Target FPS / Remove** at the bottom.
-
 ## Overlay
 
 - Move: **Ctrl+Alt+L** (click-through is disabled while moving) → drag from the top-left, resize from the corner.
@@ -119,12 +102,6 @@ Note: RTSS did not hook a synthetic D3D11 test process of mine (real games are h
 
 > Warning: RTSS injection is risky in competitive games with aggressive kernel anti-cheat
 > (Vanguard, EAC, BattlEye). Check the game's policy before using it.
-
-### What framepacer.com has that this does not
-
-- DLSS/FSR/XeSS **Frame Generation** and a Reflex **FG-aware** limiter (ours is a plain FPS cap).
-- Anti-cheat detection/blacklist and automatic game-detection heuristics.
-- Its own injection engine, ReShade integration, 30 languages, store (Steam) release.
 
 ### Cover art
 
