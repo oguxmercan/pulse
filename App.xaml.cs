@@ -17,6 +17,7 @@ public partial class App : Application
             return;
         }
 
+        Loc.Apply(Store.Load("settings.json", () => new Settings()).Lang);
         Store.SeedThemes();
         GpuTuner.Probe();
         GpuTuner.ResetStale(); // a previous run was killed before restoring clocks
@@ -27,7 +28,7 @@ public partial class App : Application
         DispatcherUnhandledException += (_, args) =>
         {
             Restore();
-            MessageBox.Show(args.Exception.Message, "Pulse — beklenmeyen hata", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(args.Exception.Message, Loc.S("Pulse — beklenmeyen hata"), MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
             Shutdown(1);
         };

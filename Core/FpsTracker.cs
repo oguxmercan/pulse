@@ -53,7 +53,7 @@ public sealed class FpsTracker : IDisposable
         var byPid = processName.Length == 0 || processName.Any(char.IsWhiteSpace);
         _matchArg = byPid ? "--process_id" : "--process_name";
         _matchValue = byPid ? pid.ToString() : processName + ".exe";
-        if (!File.Exists(ExePath)) { Error = "PresentMon.exe eksik (uygulama klasöründe olmalı)."; return; }
+        if (!File.Exists(ExePath)) { Error = Loc.S("PresentMon.exe eksik (uygulama klasöründe olmalı)."); return; }
         var cts = new CancellationTokenSource();
         _cts = cts;
         _ = Task.Run(() => LoopAsync(cts.Token));
@@ -120,7 +120,7 @@ public sealed class FpsTracker : IDisposable
                 // (leftover sessions). Surface it instead of silently showing "--".
                 Error = errText.Length > 0
                     ? errText
-                    : "ETW oturumu açılamadı (logman temizliği gerek)";
+                    : Loc.S("ETW oturumu açılamadı (logman temizliği gerek)");
                 return false;
             }
 

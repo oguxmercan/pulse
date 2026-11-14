@@ -49,7 +49,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         private set { _featured = value; PropertyChanged?.Invoke(this, new(nameof(Featured))); }
     }
 
-    string _sessionText = "Oyun bekleniyor";
+    string _sessionText = Loc.S("Oyun bekleniyor");
     public string SessionText { get => _sessionText; set { _sessionText = value; PropertyChanged?.Invoke(this, new(nameof(SessionText))); } }
 
     public MainWindow()
@@ -61,6 +61,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
 
         _fps.Sample += (fps, ft) => Dispatcher.BeginInvoke(() => Metrics.PushFps(fps, ft));
 
+        LangBox.SelectedIndex = Loc.En ? 1 : 0;
         InitOverlay();
         InitThemes();
         LoadGames();
@@ -79,13 +80,14 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         // LHM's first scan loads a kernel driver and can take ~10 s: never block the first paint on it.
         Loaded += async (_, _) =>
         {
+            Loc.Walk(this);
             await Task.Run(_sensors.Open);
             foreach (var f in _sensors.Fans) Fans.Add(f);
             FanHint.Text = Fans.Count > 0
-                ? "Kapatınca firmware kontrolüne döner."
-                : "Yazılabilir fan bulunamadı (anakart/GPU sürücüsü izin vermiyor).";
+                ? Loc.S("Kapatınca firmware kontrolüne döner.")
+                : Loc.S("Yazılabilir fan bulunamadı (anakart/GPU sürücüsü izin vermiyor).");
             TuningStatus.Text = _sensors.Error.Length > 0 && !_sensors.Ready
-                ? "Sensörler açılamadı: " + _sensors.Error
+                ? Loc.S("Sensörler açılamadı: ") + _sensors.Error
                 : "";
         };
     }
@@ -95,13 +97,30 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     void Nav_Checked(object sender, RoutedEventArgs e)
     {
         if (!IsLoaded && PageHome == null) return;
-        var tag = (sender as RadioButton)?.Content as string ?? "Giriş";
-        PageHome.Visibility = tag == "Giriş" ? Visibility.Visible : Visibility.Collapsed;
-        PageLibrary.Visibility = tag == "Kütüphane" ? Visibility.Visible : Visibility.Collapsed;
-        PageOverlay.Visibility = tag == "Overlay" ? Visibility.Visible : Visibility.Collapsed;
-        PageTune.Visibility = tag == "Hız aşırtma" ? Visibility.Visible : Visibility.Collapsed;
-        PageAbout.Visibility = tag == "Hakkında" ? Visibility.Visible : Visibility.Collapsed;
-        PageTitle.Text = tag;
+        var nav = sender as RadioButton;
+        PageHome.Visibility = ReferenceEquals(nav, NavHome) ? Visibility.Visible : Visibility.Collapsed;
+        PageLibrary.Visibility = ReferenceEquals(nav, NavLibrary) ? Visibility.Visible : Visibility.Collapsed;
+        PageOverlay.Visibility = ReferenceEquals(nav, NavOverlay) ? Visibility.Visible : Visibility.Collapsed;
+        PageTune.Visibility = ReferenceEquals(nav, NavTune) ? Visibility.Visible : Visibility.Collapsed;
+        PageAbout.Visibility = ReferenceEquals(nav, NavAbout) ? Visibility.Visible : Visibility.Collapsed;
+        PageTitle.Text = nav?.Content as string ?? "";
+        Loc.Walk(this); // collapsed pages are only reached once they are shown
+    }
+
+    void Lang_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || LangBox.SelectedIndex < 0) return;
+        var en = LangBox.SelectedIndex == 1;
+        if (en == Loc.En) return;                       // restart: the UI text is baked in at load
+        _set.Lang = en ? "en" : "tr";
+        Store.Save("settings.json", _set);
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Environment.ProcessPath!)
+            { UseShellExecute = true, Verb = "runas" });
+        }
+        catch { }
+        Application.Current.Shutdown();
     }
 
     void SetVersionLabels()
@@ -139,7 +158,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
 
         OpacitySlider.Value = _overlay.Opacity;
         ClickThroughBox.IsChecked = _set.ClickThrough;
-        OverlayButton.Content = _set.OverlayVisible ? "Overlay'i gizle" : "Overlay'i göster";
+        OverlayButton.Content = _set.OverlayVisible ? Loc.S("Overlay'i gizle") : Loc.S("Overlay'i göster");
 
         _overlay.LocationChanged += (_, _) => { _geomSave.Stop(); _geomSave.Start(); };
         _overlay.SizeChanged += (_, _) => { _geomSave.Stop(); _geomSave.Start(); };
@@ -149,7 +168,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     {
         _set.OverlayVisible = !_set.OverlayVisible;
         if (_set.OverlayVisible) _overlay.Show(); else _overlay.Hide();
-        OverlayButton.Content = _set.OverlayVisible ? "Overlay'i gizle" : "Overlay'i göster";
+        OverlayButton.Content = _set.OverlayVisible ? Loc.S("Overlay'i gizle") : Loc.S("Overlay'i göster");
         SaveSettings();
     }
 
@@ -159,8 +178,8 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         ClickThroughBox.IsChecked = _set.ClickThrough;
         _overlay.SetClickThrough(_set.ClickThrough);
         StatusLine.Text = _set.ClickThrough
-            ? "Overlay kilitli — fare oyuna geçiyor."
-            : "Taşıma modu açık — overlay'i sürükleyip köşeden boyutlandır.";
+            ? Loc.S("Overlay kilitli — fare oyuna geçiyor.")
+            : Loc.S("Taşıma modu açık — overlay'i sürükleyip köşeden boyutlandır.");
         SaveSettings();
     }
 
@@ -209,7 +228,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     }
 
     void ApplyTheme_Click(object sender, RoutedEventArgs e) =>
-        EditorError.Text = _overlay.LoadThemeSource(EditorBox.Text) ? "Uygulandı." : _overlay.ThemeError;
+        EditorError.Text = _overlay.LoadThemeSource(EditorBox.Text) ? Loc.S("Uygulandı.") : _overlay.ThemeError;
 
     void SaveTheme_Click(object sender, RoutedEventArgs e)
     {
@@ -225,10 +244,10 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     void ResetTheme_Click(object sender, RoutedEventArgs e)
     {
         var shipped = Path.Combine(AppContext.BaseDirectory, "themes", CurrentTheme + ".xaml");
-        if (!File.Exists(shipped)) { EditorError.Text = "Varsayılan tema bulunamadı."; return; }
+        if (!File.Exists(shipped)) { EditorError.Text = Loc.S("Varsayılan tema bulunamadı."); return; }
         File.Copy(shipped, ThemePath, true);
         EditorBox.Text = File.ReadAllText(shipped);
-        EditorError.Text = _overlay.LoadThemeSource(EditorBox.Text) ? "Varsayılana döndürüldü." : _overlay.ThemeError;
+        EditorError.Text = _overlay.LoadThemeSource(EditorBox.Text) ? Loc.S("Varsayılana döndürüldü.") : _overlay.ThemeError;
     }
 
     void OpenThemes_Click(object sender, RoutedEventArgs e)
@@ -294,7 +313,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     void InitSort()
     {
         if (SortBox.Items.Count > 0) return;
-        SortBox.ItemsSource = new[] { "A → Z", "Oynama süresi", "Son oynanan", "Mağaza" };
+        SortBox.ItemsSource = new[] { "A → Z", Loc.S("Oynama süresi"), Loc.S("Son oynanan"), Loc.S("Mağaza") };
         SortBox.SelectedIndex = 0;
     }
 
@@ -333,7 +352,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
 
         Filtered.Clear();
         foreach (var r in rows) Filtered.Add(r);
-        if (LibCount != null) LibCount.Text = $"{Filtered.Count} oyun";
+        if (LibCount != null) LibCount.Text = Loc.T("{0} oyun", Filtered.Count);
     }
 
     void Search_Changed(object sender, TextChangedEventArgs e)
@@ -352,12 +371,12 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     void RefreshGames_Click(object sender, RoutedEventArgs e)
     {
         LoadGames();
-        StatusLine.Text = "Kütüphane yeniden tarandı.";
+        StatusLine.Text = Loc.S("Kütüphane yeniden tarandı.");
     }
 
     void AddExe_Click(object sender, RoutedEventArgs e)
     {
-        var dlg = new OpenFileDialog { Filter = "Uygulama (*.exe)|*.exe", Title = "Oyun exe dosyasını seç" };
+        var dlg = new OpenFileDialog { Filter = Loc.S("Uygulama (*.exe)|*.exe"), Title = Loc.S("Oyun exe dosyasını seç") };
         if (dlg.ShowDialog() != true) return;
         var game = Core.Games.FromExe(dlg.FileName);
         if (_set.Custom.All(g => g.Id != game.Id))
@@ -371,7 +390,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         ApplyFilter();
         GameList.SelectedItem = row;
         _ = Covers.FetchAsync(new[] { game }, _ => Dispatcher.BeginInvoke(row.RefreshArt));
-        StatusLine.Text = "Eklendi: " + game.Name;
+        StatusLine.Text = Loc.S("Eklendi: ") + game.Name;
     }
 
     void RemoveGame_Click(object sender, RoutedEventArgs e)
@@ -379,14 +398,14 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         if (Selected is not { } row) return;
         if (_set.Custom.RemoveAll(g => g.Id == row.Game.Id) == 0)
         {
-            StatusLine.Text = "Sadece elle eklenen oyunlar kaldırılabilir.";
+            StatusLine.Text = Loc.S("Sadece elle eklenen oyunlar kaldırılabilir.");
             return;
         }
         Store.Save("settings.json", _set);
         _rows.Remove(row);
         Games.Remove(row);
         ApplyFilter();
-        SelName.Text = "Oyun seç";
+        SelName.Text = Loc.S("Oyun seç");
         SelStats.Text = "";
     }
 
@@ -417,8 +436,8 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     void HeroPlay_Click(object sender, RoutedEventArgs e)
     {
         if (Featured is not { } row) return;
-        try { row.Game.Launch(); StatusLine.Text = row.Name + " başlatıldı."; }
-        catch (Exception ex) { StatusLine.Text = "Başlatılamadı: " + ex.Message; }
+        try { row.Game.Launch(); StatusLine.Text = Loc.T("{0} başlatıldı.", row.Name); }
+        catch (Exception ex) { StatusLine.Text = Loc.S("Başlatılamadı: ") + ex.Message; }
     }
 
     void HeroBrowse_Click(object sender, RoutedEventArgs e)
@@ -438,19 +457,19 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         try
         {
             row.Game.Launch();
-            StatusLine.Text = $"{row.Name} başlatıldı — oturum süreç açılınca başlar.";
+            StatusLine.Text = Loc.T("{0} başlatıldı — oturum süreç açılınca başlar.", row.Name);
         }
-        catch (Exception ex) { StatusLine.Text = "Başlatılamadı: " + ex.Message; }
+        catch (Exception ex) { StatusLine.Text = Loc.S("Başlatılamadı: ") + ex.Message; }
     }
 
     // ---------- tuning ----------
 
     void RefreshLimiterUi()
     {
-        LimiterStatusLine.Text = Limiter.Available ? "Sınırlayıcı: RTSS hazır" : "Sınırlayıcı: RTSS yok";
+        LimiterStatusLine.Text = Limiter.Available ? Loc.S("Sınırlayıcı: RTSS hazır") : Loc.S("Sınırlayıcı: RTSS yok");
         LimiterInfo.Text = Limiter.Available
             ? $"{Limiter.Status} · {Limiter.ProfilesDir}"
-            : "RTSS kurulu değil. Kare sınırı için RTSS kur (rivatuner) — Pulse sınırı profil dosyasına yazar, enjeksiyonu RTSS yapar.";
+            : Loc.S("RTSS kurulu değil. Kare sınırı için RTSS kur (rivatuner) — Pulse sınırı profil dosyasına yazar, enjeksiyonu RTSS yapar.");
         if (Limiter.Available && GlobalLimitBox.Text.Length == 0)
         {
             var g = Limiter.ReadLimit("Global") ?? 0;
@@ -461,10 +480,10 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     void ApplyLimit_Click(object sender, RoutedEventArgs e)
     {
         if (Selected is not { } row) return;
-        if (row.Game.ExeName.Length == 0) { StatusLine.Text = "Sınır için exe adı bilinmiyor."; return; }
+        if (row.Game.ExeName.Length == 0) { StatusLine.Text = Loc.S("Sınır için exe adı bilinmiyor."); return; }
         var fps = int.TryParse(TargetBox.Text, out var v) && v is > 0 and < 1000 ? v : 0;
         var (ok, msg) = Limiter.SetLimit(row.Game.ExeName + ".exe", fps);
-        StatusLine.Text = ok ? $"{row.Name}: {msg}" : "Sınır uygulanamadı: " + msg;
+        StatusLine.Text = ok ? $"{row.Name}: {msg}" : Loc.S("Sınır uygulanamadı: ") + msg;
         RefreshLimiterUi();
     }
 
@@ -472,7 +491,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     {
         var fps = int.TryParse(GlobalLimitBox.Text, out var v) && v is > 0 and < 1000 ? v : 0;
         var (ok, msg) = Limiter.SetGlobalLimit(fps);
-        StatusLine.Text = ok ? msg : "Sınır uygulanamadı: " + msg;
+        StatusLine.Text = ok ? msg : Loc.S("Sınır uygulanamadı: ") + msg;
         RefreshLimiterUi();
     }
 
@@ -480,7 +499,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     {
         GlobalLimitBox.Text = "";
         var (ok, msg) = Limiter.SetGlobalLimit(0);
-        StatusLine.Text = ok ? "Global sınır kapatıldı." : "Kapatılamadı: " + msg;
+        StatusLine.Text = ok ? Loc.S("Global sınır kapatıldı.") : Loc.S("Kapatılamadı: ") + msg;
         RefreshLimiterUi();
     }
 
@@ -494,7 +513,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         MemMinBox.Text = _set.MemLockMin.ToString();
         MemMaxBox.Text = _set.MemLockMax.ToString();
         GpuInfo.Text = GpuTuner.Available
-            ? $"{GpuTuner.Name} · güç {GpuTuner.PowerMin:F0}–{GpuTuner.PowerMax:F0} W (varsayılan {GpuTuner.PowerDefault:F0} W)"
+            ? Loc.T("{0} · güç {1}–{2} W (varsayılan {3} W)", GpuTuner.Name, GpuTuner.PowerMin.ToString("F0"), GpuTuner.PowerMax.ToString("F0"), GpuTuner.PowerDefault.ToString("F0"))
             : GpuTuner.LastError;
         TuningStatus.Text = GpuTuner.Available ? "" : "Hız aşırtma kullanılamıyor.";
     }
@@ -502,7 +521,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
     void Power_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (PowerLabel != null)
-            PowerLabel.Text = $"{e.NewValue:F0} W (varsayılan {GpuTuner.PowerDefault:F0} W)";
+            PowerLabel.Text = Loc.T("{0} W (varsayılan {1} W)", e.NewValue.ToString("F0"), GpuTuner.PowerDefault.ToString("F0"));
     }
 
     void ApplyUndervolt(string preset)
@@ -510,12 +529,12 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         if (!GpuTuner.Available) return;
         var (percent, cap) = UndervoltPresets[preset];
         var watts = Math.Round(GpuTuner.PowerDefault * (1 - percent / 100.0));
-        TuningStatus.Text = $"{preset} uygulanıyor…";
+        TuningStatus.Text = Loc.T("{0} uygulanıyor…", preset);
         Task.Run(() => GpuTuner.ApplyUndervolt(watts, cap)).ContinueWith(t => Dispatcher.Invoke(() =>
         {
             if (t.IsFaulted)
             {
-                TuningStatus.Text = "Hata: " + t.Exception?.GetBaseException().Message;
+                TuningStatus.Text = Loc.S("Hata: ") + t.Exception?.GetBaseException().Message;
                 return;
             }
             PowerSlider.Value = Math.Clamp(watts, PowerSlider.Minimum, PowerSlider.Maximum);
@@ -544,30 +563,30 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         SaveSettings();
 
         var p = _set;
-        TuningStatus.Text = "Uygulanıyor…";
+        TuningStatus.Text = Loc.S("Uygulanıyor…");
         Task.Run(() =>
         {
             var msgs = new List<string>();
             var r = GpuTuner.SetPowerLimit(p.PowerLimit);
-            if (r.Length > 0) msgs.Add("güç: " + OneLine(r));
+            if (r.Length > 0) msgs.Add(Loc.S("güç: ") + OneLine(r));
             r = GpuTuner.LockCore(p.CoreLockMin, p.CoreLockMax);
-            if (r.Length > 0) msgs.Add("çekirdek: " + OneLine(r));
+            if (r.Length > 0) msgs.Add(Loc.S("çekirdek: ") + OneLine(r));
             r = GpuTuner.LockMemory(p.MemLockMin, p.MemLockMax);
-            if (r.Length > 0) msgs.Add("bellek: " + OneLine(r));
+            if (r.Length > 0) msgs.Add(Loc.S("bellek: ") + OneLine(r));
             GpuTuner.MarkActive(true);
-            return msgs.Count == 0 ? "Uygulandı. Kapatınca geri alınır." : string.Join(" · ", msgs);
+            return msgs.Count == 0 ? Loc.S("Uygulandı. Kapatınca geri alınır.") : string.Join(" · ", msgs);
         }).ContinueWith(t => Dispatcher.Invoke(() =>
             TuningStatus.Text = t.IsFaulted ? "Hata: " + t.Exception?.GetBaseException().Message : t.Result));
     }
 
     void ResetTuning_Click(object sender, RoutedEventArgs e)
     {
-        TuningStatus.Text = "Sıfırlanıyor…";
+        TuningStatus.Text = Loc.S("Sıfırlanıyor…");
         Task.Run(() =>
         {
             GpuTuner.ResetAll();
             GpuTuner.MarkActive(false);
-            return "Varsayılan saat ve güç limiti geri yüklendi.";
+            return Loc.S("Varsayılan saat ve güç limiti geri yüklendi.");
         }).ContinueWith(t => Dispatcher.Invoke(() =>
         {
             PowerSlider.Value = GpuTuner.PowerDefault;
@@ -575,7 +594,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
             CoreMaxBox.Text = "0";
             MemMinBox.Text = "0";
             MemMaxBox.Text = "0";
-            TuningStatus.Text = t.IsFaulted ? "Hata: " + t.Exception?.GetBaseException().Message : t.Result;
+            TuningStatus.Text = t.IsFaulted ? Loc.S("Hata: ") + t.Exception?.GetBaseException().Message : t.Result;
             _set.CoreLockMin = _set.CoreLockMax = _set.MemLockMin = _set.MemLockMax = 0;
             SaveSettings();
         }));
@@ -587,7 +606,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
         Fans.Clear();
         _sensors.RefreshFans();
         foreach (var f in _sensors.Fans) Fans.Add(f);
-        StatusLine.Text = "Fanlar firmware kontrolüne bırakıldı.";
+        StatusLine.Text = Loc.S("Fanlar firmware kontrolüne bırakıldı.");
     }
 
     static int Int(string s) => int.TryParse(s, NumberStyles.Integer, CultureInfo.CurrentCulture, out var v) ? v : 0;
@@ -612,7 +631,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
 
             SessionText = _sessions.Active
                 ? $"{_sessions.CurrentName} · {_sessions.Elapsed:hh\\:mm\\:ss}"
-                : "Oyun bekleniyor";
+                : Loc.S("Oyun bekleniyor");
 
             TrackForeground();
 
@@ -621,7 +640,7 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
             if (Limiter.Available)
             {
                 var running = Limiter.Running();
-                var text = running ? "Sınırlayıcı: RTSS çalışıyor" : "Sınırlayıcı: RTSS kapalı";
+                var text = running ? Loc.S("Sınırlayıcı: RTSS çalışıyor") : Loc.S("Sınırlayıcı: RTSS kapalı");
                 if (LimiterStatusLine.Text != text) LimiterStatusLine.Text = text;
             }
         }
@@ -650,10 +669,10 @@ public partial class MainWindow : FluentWindow, INotifyPropertyChanged
             {
                 _sessions.End();
                 RefreshStats();
-                SessionText = "Oyun bekleniyor";
+                SessionText = Loc.S("Oyun bekleniyor");
             }
         }
-        catch (Exception ex) { StatusLine.Text = "Oturum izleme: " + ex.Message; }
+        catch (Exception ex) { StatusLine.Text = Loc.S("Oturum izleme: ") + ex.Message; }
     }
 
     static HashSet<string> RunningNames()

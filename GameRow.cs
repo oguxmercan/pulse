@@ -40,10 +40,10 @@ public sealed class GameRow : Obs
     public void SetStat(GameStat? s)
     {
         _stat = s;
-        if (s == null) { Sub = $"{Store} · yeni"; Raise(nameof(Details)); return; }
+        if (s == null) { Sub = Loc.T("{0} · yeni", Store); Raise(nameof(Details)); return; }
         var parts = new List<string> { Store, Dur(s.Played) };
         if (s.AvgFps > 0) parts.Add($"{s.AvgFps:F0} fps");
-        if (_target > 0 && s.AvgFps > 0) parts.Add(s.AvgFps >= _target * 0.97 ? "hedefte" : "hedef altı");
+        if (_target > 0 && s.AvgFps > 0) parts.Add(s.AvgFps >= _target * 0.97 ? Loc.S("hedefte") : Loc.S("hedef altı"));
         if (s.AvgGpuTemp > 0) parts.Add($"{s.AvgGpuTemp:F0}°C");
         Sub = string.Join(" · ", parts);
         Raise(nameof(Details));
@@ -53,29 +53,29 @@ public sealed class GameRow : Obs
     {
         get
         {
-            var d = new List<string> { $"Mağaza: {Game.Store}" };
+            var d = new List<string> { Loc.T("Mağaza: {0}", Game.Store) };
             if (_stat != null)
             {
-                d.Add($"Toplam oynama: {Dur(_stat.Played)}");
-                d.Add($"Oturum sayısı: {_stat.Count}");
-                d.Add($"Ortalama FPS: {(_stat.AvgFps > 0 ? _stat.AvgFps.ToString("F0", CultureInfo.CurrentCulture) : "—")}" +
-                      (_target > 0 ? $"   Hedef: {_target} fps" : ""));
-                d.Add($"Ortalama GPU: {(_stat.AvgGpuTemp > 0 ? _stat.AvgGpuTemp.ToString("F0", CultureInfo.CurrentCulture) + "°C" : "—")}" +
-                      $"   En yüksek GPU: {(_stat.MaxGpuTemp > 0 ? _stat.MaxGpuTemp.ToString("F0", CultureInfo.CurrentCulture) + "°C" : "—")}" +
-                      $"   En yüksek CPU: {(_stat.MaxCpuTemp > 0 ? _stat.MaxCpuTemp.ToString("F0", CultureInfo.CurrentCulture) + "°C" : "—")}");
-                d.Add($"Son oynama: {_stat.Last:dd.MM.yyyy HH:mm}");
+                d.Add(Loc.T("Toplam oynama: {0}", Dur(_stat.Played)));
+                d.Add(Loc.T("Oturum sayısı: {0}", _stat.Count));
+                d.Add(Loc.T("Ortalama FPS: {0}", _stat.AvgFps > 0 ? _stat.AvgFps.ToString("F0", CultureInfo.CurrentCulture) : "—") +
+                      (_target > 0 ? Loc.T("   Hedef: {0} fps", _target) : ""));
+                d.Add(Loc.T("Ortalama GPU: {0}", _stat.AvgGpuTemp > 0 ? _stat.AvgGpuTemp.ToString("F0", CultureInfo.CurrentCulture) + "°C" : "—") +
+                      Loc.T("   En yüksek GPU: {0}", _stat.MaxGpuTemp > 0 ? _stat.MaxGpuTemp.ToString("F0", CultureInfo.CurrentCulture) + "°C" : "—") +
+                      Loc.T("   En yüksek CPU: {0}", _stat.MaxCpuTemp > 0 ? _stat.MaxCpuTemp.ToString("F0", CultureInfo.CurrentCulture) + "°C" : "—"));
+                d.Add(Loc.T("Son oynama: {0}", _stat.Last.ToString("dd.MM.yyyy HH:mm")));
             }
-            else d.Add("Henüz oturum kaydı yok.");
+            else d.Add(Loc.S("Henüz oturum kaydı yok."));
             d.Add("");
-            d.Add($"Başlatma: {Game.LaunchCmd}");
-            if (Game.ExeName.Length > 0) d.Add($"Süreç: {Game.ExeName}.exe (oturum bunun açık olmasıyla sayılır)");
+            d.Add(Loc.T("Başlatma: {0}", Game.LaunchCmd));
+            if (Game.ExeName.Length > 0) d.Add(Loc.T("Süreç: {0}", Game.ExeName + ".exe (oturum bunun açık olmasıyla sayılır)"));
             return string.Join(Environment.NewLine, d);
         }
     }
 
     static string Dur(TimeSpan t) => t.TotalMinutes < 1
-        ? $"{t.Seconds} sn"
+        ? Loc.T("{0} sn", t.Seconds)
         : t.TotalHours >= 1
-            ? $"{(int)t.TotalHours} sa {t.Minutes} dk"
-            : $"{t.Minutes} dk";
+            ? Loc.T("{0} sa {1} dk", (int)t.TotalHours, t.Minutes)
+            : Loc.T("{0} dk", t.Minutes);
 }

@@ -81,7 +81,7 @@ public sealed class Sensors : IDisposable
                 else if (hw.HardwareType == HardwareType.Memory && hw.Name.Contains("Total", StringComparison.OrdinalIgnoreCase)) _mem = hw;
             }
             Ready = _cpu != null || _gpu != null;
-            if (!Ready) Error = "Donanım sensörleri açılamadı — yönetici olarak çalıştırın.";
+            if (!Ready) Error = Loc.S("Donanım sensörleri açılamadı — yönetici olarak çalıştırın.");
             RefreshFans();
         }
         catch (Exception e)

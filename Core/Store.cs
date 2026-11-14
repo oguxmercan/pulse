@@ -5,6 +5,7 @@ namespace Pulse.Core;
 
 public sealed class Settings
 {
+    public string Lang { get; set; } = "tr";
     public string Theme { get; set; } = "minimal";
     public double Left { get; set; } = 24;
     public double Top { get; set; } = 24;

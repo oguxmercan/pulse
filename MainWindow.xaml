@@ -213,7 +213,7 @@
                                         <TextBlock Style="{StaticResource Val}"
                                                    Text="{Binding Metrics.Fps, StringFormat='{}{0:F0}', TargetNullValue='--'}" />
                                         <TextBlock Style="{StaticResource Lbl}"
-                                                   Text="{Binding Metrics.Frametime, StringFormat='{}{0:F1} ms kare', TargetNullValue='kare süresi yok'}" />
+                                                   Text="{Binding Metrics.Frametime, StringFormat='{}{0:F1} ms', TargetNullValue='—'}" />
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource Card}" Margin="6,0">
@@ -222,7 +222,7 @@
                                         <TextBlock Style="{StaticResource Val}"
                                                    Text="{Binding Metrics.CpuTemp, StringFormat='{}{0:F0}°C', TargetNullValue='--'}" />
                                         <TextBlock Style="{StaticResource Lbl}"
-                                                   Text="{Binding Metrics.CpuLoad, StringFormat='yük {0:F0}%', TargetNullValue='yük yok'}" />
+                                                   Text="{Binding Metrics.CpuLoad, StringFormat='{}{0:F0}%', TargetNullValue='—'}" />
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource Card}" Margin="6,0">
@@ -231,7 +231,7 @@
                                         <TextBlock Style="{StaticResource Val}"
                                                    Text="{Binding Metrics.GpuTemp, StringFormat='{}{0:F0}°C', TargetNullValue='--'}" />
                                         <TextBlock Style="{StaticResource Lbl}"
-                                                   Text="{Binding Metrics.GpuLoad, StringFormat='yük {0:F0}%', TargetNullValue='yük yok'}" />
+                                                   Text="{Binding Metrics.GpuLoad, StringFormat='{}{0:F0}%', TargetNullValue='—'}" />
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource Card}" Margin="6,0,0,0">
@@ -240,7 +240,7 @@
                                         <TextBlock Style="{StaticResource Val}"
                                                    Text="{Binding Metrics.RamUsed, StringFormat='{}{0:F1} GB', TargetNullValue='--'}" />
                                         <TextBlock Style="{StaticResource Lbl}"
-                                                   Text="{Binding Metrics.RamTotal, StringFormat='toplam {0:F0} GB', TargetNullValue=''}" />
+                                                   Text="{Binding Metrics.RamTotal, StringFormat='{}{0:F0} GB', TargetNullValue=''}" />
                                     </StackPanel>
                                 </Border>
                             </UniformGrid>
@@ -564,6 +564,14 @@
                                 <TextBlock x:Name="AboutVersion" Style="{StaticResource Lbl}" Margin="0,4,0,0"
                                            Text="v1.0.0 · .NET 10 / WPF" />
                             </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="2,0,0,12">
+                            <TextBlock Text="Dil" Style="{StaticResource Lbl}" VerticalAlignment="Center" />
+                            <ComboBox x:Name="LangBox" Width="140" Margin="10,0,0,0" SelectionChanged="Lang_Changed">
+                                <ComboBoxItem Content="Türkçe" />
+                                <ComboBoxItem Content="English" />
+                            </ComboBox>
                         </StackPanel>
 
                         <Border Style="{StaticResource Card}" Margin="0,0,0,12">

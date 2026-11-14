@@ -94,4 +94,5 @@ public static class SelfTest
         File.WriteAllLines(Path.Combine(Store.Dir, "selftest.log"), log);
         Environment.Exit(0);
     }
+
 }

@@ -38,7 +38,10 @@ Development: `dotnet build` → `dotnet publish -c Release -o dist`
 
 Logo `Assets/logo.png` (regenerate with `python Assets/make_logo.py`), window icon `Assets/pulse.ico`.
 The **About** page holds a developer card (Oğuzhan Mercan · Mercan Search and Development · Netherlands),
-GitHub / X links and the tech/licence notes. The app UI itself is Turkish.
+GitHub / X links and the tech/licence notes.
+
+**Interface language:** Turkish (default) or English — About → *Language*, the app restarts once.
+Turkish is the source language; `Core/Loc.cs` holds the English table and translates the loaded UI.
 
 - **Sidebar** (244 px): logo, Home · Library · Overlay · Overclocking, plus a live SYSTEM box
   (CPU/GPU temperature, FPS, GPU/CPU model) and an overlay on/off button.

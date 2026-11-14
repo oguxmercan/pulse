@@ -30,10 +30,10 @@ public static class Limiter
             if (!File.Exists(exe) || !Directory.Exists(profiles)) continue;
             ExePath = exe;
             ProfilesDir = profiles;
-            Status = Running() ? "RTSS çalışıyor" : "RTSS hazır (başlatılacak)";
+            Status = Running() ? "RTSS çalışıyor" : Loc.S("RTSS hazır (başlatılacak)");
             return;
         }
-        Status = "RTSS kurulu değil — sınırlama için RTSS gerekir";
+        Status = Loc.S("RTSS kurulu değil — sınırlama için RTSS gerekir");
     }
 
     public static bool Running() => Process.GetProcessesByName("RTSS").Length > 0;
@@ -52,7 +52,7 @@ public static class Limiter
                 if (Running()) { Status = "RTSS çalışıyor"; return true; }
             }
         }
-        catch (Exception e) { Status = "RTSS başlatılamadı: " + e.Message; }
+        catch (Exception e) { Status = Loc.S("RTSS başlatılamadı: ") + e.Message; }
         return Running();
     }
 
